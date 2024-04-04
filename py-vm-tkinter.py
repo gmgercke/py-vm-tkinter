@@ -25,11 +25,15 @@ d1 = Drink("Kaffee", 1.50)
 d2 = Drink("Tee", 1.35)
 d3 = Drink("Kakao", 2.10)
 d4 = Drink("Wasser", 0.75)
-d5 = Drink("Gummibärchen", 0.00)
+d5 = Drink("Überraschung", 0.00)
+d6 = Drink("Gummibärchen", 0.00)
+
+# Idee um Redundanz zu vermeiden, aber vermutlich erst in der nächsten Version
+#bigdrinklist = [Drink("Kaffee", 1.50), Drink("Tee", 1.35), Drink("Kakao", 2.10), Drink("Wasser", 0.75), Drink("Gummibärchen", 0.00)]
 
 # Hier packe ich die Namen und Preise der Objekte in Listen, um sie später einfacher durchsuchen zu können
-drinks = [d1.name, d2.name, d3.name, d4.name, d5.name]
-prices = [d1.price, d2.price, d3.price, d4.price, d5.price]
+drinks = [d1.name, d2.name, d3.name, d4.name, d5.name, d6.name]
+prices = [d1.price, d2.price, d3.price, d4.price]
 
 drinklist_text = (f"""\nHallo {os.getlogin()}, es stehen folgende Getränke zur Auswahl:\n
         {d1.name} für {d1.price:.2f} €
@@ -92,6 +96,8 @@ def submit():
     found = False
     # Erstellung einer Zufallsauswahl für die Eingabemöglichkeit "Überraschung"
     rando = random.choice(drinks)
+    while rando == "Überraschung":
+        rando = random.choice(drinks)
 
     # Eingabe wird mit Drink-Liste abgeglichen
     # Wenn Übereinstimmung gefunden, dann wird die Bestellung bestätigt
@@ -142,34 +148,26 @@ choice = tk.Label(text="Deine Wahl: ", font=mainFont)
 choice.grid()
 
 
-# def divide_drinks():
-#     for item in drinks:
-#         yield item
-#
-
-#for value in divide_drinks():
-    
-
 # Vorschautext in Eingabefeldern werden definiert und an das Reinklicken ins Feld gebunden
-choiceEntry = ttk.Combobox(values=["Kaffee", "Tee", "Wasser", "Kakao", "Überraschung"])
+choiceEntry = ttk.Combobox(values=drinks[ : -1])
 choiceEntry.grid()
-choiceEntry.insert(0, " ")
+choiceEntry.insert(0, "Getränk wählen...")
 #choiceEntry.configure(state="disabled")
 
 button = ttk.Button(text="Auswahl", command=submit)
 
 numberEntry = tk.Entry(textvariable=varNumber)
 numberEntry.grid()
-numberEntry.insert(0, "Anzahl")
+numberEntry.insert(0, "Anzahl eintippen...")
 numberEntry.configure(state="disabled")
 
-choice_focus_in = choiceEntry.bind('<Button-1>', lambda x: on_focus_in(choiceEntry))
-choice_focus_out = choiceEntry.bind(
-    '<FocusOut>', lambda x: on_focus_out(choiceEntry, "Getränk"))
+#choice_focus_in = choiceEntry.bind('<Button-1>', lambda x: on_focus_in(choiceEntry))
+#choice_focus_out = choiceEntry.bind(
+#    '<FocusOut>', lambda x: on_focus_out(choiceEntry, "Getränk wählen..."))
 
 number_focus_in = numberEntry.bind('<Button-1>', lambda x: on_focus_in(numberEntry))
 number_focus_out = numberEntry.bind(
-    '<FocusOut>', lambda x: on_focus_out(numberEntry, "Anzahl"))
+    '<FocusOut>', lambda x: on_focus_out(numberEntry, "Anzahl eintippen..."))
 
 # Bestellbutton
 
