@@ -10,6 +10,7 @@ window.title("Getränkeautomat")
 window.config(border=25)
 greetingFont = tkinter.font.Font(family="Helvetica", size=16, weight="bold")
 mainFont = tkinter.font.Font(family="Helvetica", size=12)
+buttonFont = tkinter.font.Font(family="Helvetica", size=10, weight="bold")
 greeting = tk.Label(text="Willkommen bei Trink-O-Mat!", font=greetingFont)
 greeting.grid()
 
@@ -51,8 +52,7 @@ varNumber = tk.StringVar()
 
 # Funktion: Vorschautext in Eingabefeld verschwindet beim Reinklicken
 def on_focus_in(entry):
-    if entry.cget('state') == 'disabled':
-        entry.configure(state='normal')
+    if entry.cget('state') == 'normal':
         entry.delete(0, 'end')
 
 
@@ -60,7 +60,7 @@ def on_focus_in(entry):
 def on_focus_out(entry, placeholder):
     if entry.get() == "":
         entry.insert(0, placeholder)
-        entry.configure(state='disabled')
+        entry.configure(state='normal')
 
 
 # Labels werden als existent vordefiniert, um sie später ausserhalb der Schleife manipulieren zu können
@@ -69,6 +69,8 @@ error = tk.Label(window)
 bezahl = tk.Label(window)
 surprise = tk.Label(window)
 gsurprise = tk.Label(window)
+barButton = tk.Button(window)
+karteButton = tk.Button(window)
 
 # Funktion: Button: Nutzer gibt ein, welches Getränk und wieviel davon er möchte, klickt dann Bestellen
 def submit():
@@ -84,6 +86,8 @@ def submit():
     global bezahl
     global surprise
     global gsurprise
+    global barButton
+    global karteButton
 
     # Die Label werden bei Knopfdruck, aber vorm Erstellen des neuen Labels, gelöscht
     auswahl.destroy()
@@ -91,6 +95,8 @@ def submit():
     bezahl.destroy()
     surprise.destroy()
     gsurprise.destroy()
+    barButton.destroy()
+    karteButton.destroy()
 
     # found als Hilfsvariable, um Existenz eines Listeneintrags zu bestätigen
     found = False
@@ -102,7 +108,7 @@ def submit():
     # Eingabe wird mit Drink-Liste abgeglichen
     # Wenn Übereinstimmung gefunden, dann wird die Bestellung bestätigt
     for x in drinks:
-        if choiceSet.lower() == x.lower() or choiceSet.lower() == "Überraschung".lower():
+        if (choiceSet.lower() == x.lower() or choiceSet.lower() == "Überraschung".lower()) and numberSet != "":
             auswahl_text = f"\nDu hast {numberSet}x {choiceSet.capitalize()} gewählt."
             auswahl = tk.Label(text=auswahl_text, font=mainFont)
             auswahl.grid()
@@ -110,8 +116,14 @@ def submit():
             break
 
     # Wenn nicht gefunden, gib eine Fehlermeldung aus
-    if not found:
-        error_text = f"\n{choiceSet.capitalize()} ist keine gültige Eingabe. Bitte versuche es noch einmal."
+    if not found or choiceSet == "" or numberSet == "" or numberSet == "Anzahl eintippen...":
+        error_text = f"\nDies ist keine gültige Eingabe. Bitte versuche es noch einmal."
+        error = tk.Label(text=error_text, font=mainFont)
+        error.grid()
+        return
+
+    if found and numberSet == "0":
+        error_text = f"\nDies ist keine gültige Eingabe. Bitte versuche es noch einmal."
         error = tk.Label(text=error_text, font=mainFont)
         error.grid()
         return
@@ -125,16 +137,24 @@ def submit():
     # Bestellung mit Gesamtpreis wird ausgegeben
     for x, y in zip(drinks, prices):
         if choiceSet.lower() == x.lower():
-            bezahl_text = f"""\n{numberSet} {choiceSet.capitalize()} kosten insgesamt {numberSet*y:.2f} €.\n\nMöchtest du bar zahlen oder mit Karte?"""
+            bezahl_text = f"""{numberSet} {choiceSet.capitalize()} kosten insgesamt {numberSet*y:.2f} €.\n"""
             bezahl = tk.Label(text=bezahl_text, font=mainFont)
             bezahl.grid()
+            barButton = tk.Button(text="Bar", font=buttonFont)
+            barButton.grid(row=11, column=0, sticky="W", ipadx=50)
+            karteButton = tk.Button(text="Karte", font=buttonFont)
+            karteButton.grid(row=11, column=0, sticky="E", ipadx=50)
             break
         # Das Gleiche, wenn die Eingabe "Überraschung" war
         elif choiceSet.lower() == "Überraschung".lower():
             if rando == x and rando != "Gummibärchen":
-                surprise_text = f"""Es wurde {rando.capitalize()} für dich ausgewählt. {numberSet} {rando.capitalize()} kosten insgesamt {numberSet*y:.2f} €.\n\nMöchtest du bar zahlen oder mit Karte?"""
+                surprise_text = f"""Es wurde {rando.capitalize()} für dich ausgewählt. {numberSet} {rando.capitalize()} kosten insgesamt {numberSet*y:.2f} €.\n"""
                 surprise = tk.Label(text=surprise_text, font=mainFont)
                 surprise.grid()
+                barButton = tk.Button(text="Bar", font=buttonFont)
+                barButton.grid(row=11, column=0, sticky="W", ipadx=50, ipady=15)
+                karteButton = tk.Button(text="Karte", font=buttonFont)
+                karteButton.grid(row=11, column=0, sticky="E", ipadx=50, ipady=15)
 
             # Die Wahl "Überraschung" hat auch die Chance, gratis Gummibärchen auszuspucken
             elif rando == "Gummibärchen":
@@ -152,18 +172,18 @@ choice.grid()
 choiceEntry = ttk.Combobox(values=drinks[ : -1])
 choiceEntry.grid()
 choiceEntry.insert(0, "Getränk wählen...")
-#choiceEntry.configure(state="disabled")
+choiceEntry.configure(state="normal")
 
 button = ttk.Button(text="Auswahl", command=submit)
 
 numberEntry = tk.Entry(textvariable=varNumber)
 numberEntry.grid()
 numberEntry.insert(0, "Anzahl eintippen...")
-numberEntry.configure(state="disabled")
+numberEntry.configure(state="normal")
 
-#choice_focus_in = choiceEntry.bind('<Button-1>', lambda x: on_focus_in(choiceEntry))
-#choice_focus_out = choiceEntry.bind(
-#    '<FocusOut>', lambda x: on_focus_out(choiceEntry, "Getränk wählen..."))
+choice_focus_in = choiceEntry.bind('<Button-1>', lambda x: on_focus_in(choiceEntry))
+choice_focus_out = choiceEntry.bind(
+    '<FocusOut>', lambda x: on_focus_out(choiceEntry, "Getränk wählen..."))
 
 number_focus_in = numberEntry.bind('<Button-1>', lambda x: on_focus_in(numberEntry))
 number_focus_out = numberEntry.bind(
@@ -171,8 +191,8 @@ number_focus_out = numberEntry.bind(
 
 # Bestellbutton
 
-choiceButton = tk.Button(text="Bestellen", command=submit)
-choiceButton.grid()
+choiceButton = tk.Button(text="Bestellen", font=buttonFont, command=submit)
+choiceButton.grid(pady=5, ipadx=10, ipady=5)
 
 # das TKinter Fenster mit allen oben festgelegten Inhalten wird initialisiert
 
